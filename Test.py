@@ -36,7 +36,7 @@ sys.stdout = open('file', 'w')
 def callAPI(code):
     # data to be sent to api
     data = {'security': '37c4e05ef1',
-            'coupon_code': 'md15'
+            'coupon_code': code
             }
     # sending post request and saving response as response object
     r = requests.post(url=API_ENDPOINT, data=data, headers=headers)
